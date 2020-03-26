@@ -1,18 +1,25 @@
-
 plugins {
     id 'org.springframework.boot' version '2.2.5.RELEASE'
     id 'io.spring.dependency-management' version '1.0.9.RELEASE'
     id 'java'
     id 'com.google.cloud.tools.jib' version '2.1.0' // docker 패키징
+    id 'maven-publish'
+}
+
+ext {
+    group = 'com.example'
+    artifactId = 'demo'
+    version = '0.0.4-SNAPSHOT'
+    sourceCompatibility = '1.8'
 }
 
 jar {
     enabled = true
 }
 
-group = 'com.example'
-version = '0.0.2-SNAPSHOT'
-sourceCompatibility = '1.8'
+group = '${ext.group}'
+version = '${ext.version}'
+sourceCompatibility = '${ext.sourceCompatibility}'
 
 configurations {
     compileOnly {
@@ -43,11 +50,42 @@ test {
 
 jib {
     to {
-        image = "opensurvey/demo-example"
+        image = "demo-example"
         tags = ["${project.version}".toString()]
     }
     container {
         mainClass = "com.example.demo.DemoApplication"
         ports = ["8080"]
+        //ZonedDateTime current = ;
+        //DateTimeFormatter formatter = DateTimeFormatter.ISO_DATE_TIME;
+        //creationTime = current.format(formatter)
+    }
+}
+
+
+publishing {
+    publications {
+        maven(MavenPublication) {
+            groupId = '${ext.group}'
+            artifactId = '${ext.artifactId}'
+            version = '${ext.version}'
+            
+            artifact bootJar
+            //artifact 'demo-0.0.2-SNAPSHOT.jar'
+            //artifact source: sourceJar, classifier: 'src', extension: 'zip'
+        }
+    }
+    repositories {
+        maven {
+            url = 'http://localhost:8081/repository/maven-myrepo-snapshot/'
+            credentials {
+                username= "${mavenUser}"
+                password= "${mavenPassword}"
+            }
+            authentication {
+                basic(BasicAuthentication)
+            }
+
+        }
     }
 }
